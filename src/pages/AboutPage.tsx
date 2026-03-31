@@ -78,6 +78,21 @@ export const AboutPage = () => {
             .
           </p>
         </div>
+
+        {/* Coming Soon */}
+        <div className="mt-8">
+          <h3 className="text-xs font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mb-3">
+            Coming Soon
+          </h3>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed">
+            Upcoming releases will include{" "}
+            <strong className="font-semibold text-red-500">
+              AI-generated captions
+            </strong>{" "}
+            — automatically transcribed and synced to video — making content
+            accessible without any effort from creators.
+          </p>
+        </div>
       </section>
 
       <div className="h-px bg-neutral-200 dark:bg-neutral-800 mb-10" />
@@ -95,15 +110,16 @@ export const AboutPage = () => {
             </strong>
             , a software engineer with 2 years of experience and a keen interest
             in full-stack development and{" "}
-            <strong className="font-medium text-red-500">DevOps</strong>. I enjoy
-            building real products over CRUD apps
-            — things that involve actual infrastructure, concurrency, and system
-            design decisions rather than just wiring a form to a database.
+            <strong className="font-medium text-red-500">DevOps</strong>. I
+            enjoy building real products over CRUD apps — things that involve
+            actual infrastructure, concurrency, and system design decisions
+            rather than just wiring a form to a database.
           </p>
           <p>
             TinyFlix is one of those projects — built entirely on my own, from
             system design to deployment, as a way to push beyond day-to-day work
-            and explore what it takes to ship something production-grade end to end.
+            and explore what it takes to ship something production-grade end to
+            end.
           </p>
         </div>
       </section>
@@ -115,29 +131,58 @@ export const AboutPage = () => {
         <h2 className="text-xs font-bold text-red-500 uppercase tracking-widest mb-4">
           Contact
         </h2>
-        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center shrink-0">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              className="w-5 h-5 text-red-500"
-            >
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-              <polyline points="22,6 12,13 2,6" />
-            </svg>
+        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center shrink-0">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                className="w-5 h-5 text-red-500"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-xs text-neutral-400 dark:text-neutral-500 mb-0.5">
+                Portfolio
+              </p>
+              <a
+                href="https://shanbhag.dev"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-medium text-neutral-900 dark:text-white hover:text-red-500 dark:hover:text-red-400 transition-colors"
+              >
+                shanbhag.dev
+              </a>
+            </div>
           </div>
-          <div>
-            <p className="text-xs text-neutral-400 dark:text-neutral-500 mb-0.5">
-              Email
-            </p>
-            <a
-              href="mailto:sujayshanbhag7@gmail.com"
-              className="text-sm font-medium text-neutral-900 dark:text-white hover:text-red-500 dark:hover:text-red-400 transition-colors"
-            >
-              sujay.shanbhag30@gmail.com
-            </a>
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center shrink-0">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                className="w-5 h-5 text-red-500"
+              >
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                <polyline points="22,6 12,13 2,6" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-xs text-neutral-400 dark:text-neutral-500 mb-0.5">
+                Email
+              </p>
+              <a
+                href="mailto:sujayshanbhag7@gmail.com"
+                className="text-sm font-medium text-neutral-900 dark:text-white hover:text-red-500 dark:hover:text-red-400 transition-colors"
+              >
+                sujay.shanbhag30@gmail.com
+              </a>
+            </div>
           </div>
         </div>
       </section>
