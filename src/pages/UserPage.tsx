@@ -16,12 +16,13 @@ export const UserPage = () => {
 
   const cursorRef = useRef<string | undefined>(undefined);
   const loadingRef = useRef(false);
+  const hasMoreRef = useRef(true);
   const initialisedRef = useRef(false);
 
   const { ref: sentinelRef, inView } = useInView({ threshold: 0 });
 
   const loadMore = useCallback(async () => {
-    if (!userId || loadingRef.current || !hasMore) return;
+    if (!userId || loadingRef.current || !hasMoreRef.current) return;
     loadingRef.current = true;
     setLoading(true);
     setError(null);
@@ -31,8 +32,10 @@ export const UserPage = () => {
       if (!cursorRef.current && data.user) setUser(data.user);
 
       const incoming = data.videos?.videos ?? [];
-      cursorRef.current = data.videos?.nextCursor ?? undefined;
-      setHasMore(!!data.videos?.nextCursor);
+      const next = data.videos?.nextCursor ?? undefined;
+      cursorRef.current = next;
+      hasMoreRef.current = !!next;
+      setHasMore(!!next);
       setVideos((prev) => {
         const existingIds = new Set(prev.map((v) => v.videoId));
         return [
@@ -46,7 +49,7 @@ export const UserPage = () => {
       loadingRef.current = false;
       setLoading(false);
     }
-  }, [userId, hasMore]);
+  }, [userId]); // stable — hasMore accessed via ref
 
   // Initial load
   useEffect(() => {

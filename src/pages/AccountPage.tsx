@@ -36,17 +36,27 @@ const STATUS_STYLES: Record<string, { dot: string; text: string; bg: string }> =
       text: "text-red-700 dark:text-red-400",
       bg: "bg-red-50 dark:bg-red-900/20",
     },
+    RETRY: {
+      dot: "bg-orange-400",
+      text: "text-orange-700 dark:text-orange-400",
+      bg: "bg-orange-50 dark:bg-orange-900/20",
+    },
   };
+
+const STATUS_LABELS: Record<string, string> = {
+  RETRY: "Pending Retry",
+};
 
 const StatusBadge = ({ status }: { status?: string }) => {
   const key = (status ?? "UPLOADED").toUpperCase();
   const style = STATUS_STYLES[key] ?? STATUS_STYLES["UPLOADED"];
+  const label = STATUS_LABELS[key] ?? key;
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${style.text} ${style.bg}`}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-      {key}
+      {label}
     </span>
   );
 };
@@ -65,6 +75,10 @@ export const AccountPage = () => {
 
   const userId = paramUserId || authUser?.id;
 
+  const cursorRef = useRef<string | undefined>(undefined);
+  const hasMoreRef = useRef(true);
+  const loadingMoreRef = useRef(false);
+
   const fetchVideos = (isReload = false) => {
     if (!userId) {
       setLoading(false);
@@ -72,6 +86,8 @@ export const AccountPage = () => {
     }
     if (isReload) {
       setReloading(true);
+      cursorRef.current = undefined;
+      hasMoreRef.current = true;
       setCursor(undefined);
       setHasMore(true);
     } else setLoading(true);
@@ -84,6 +100,8 @@ export const AccountPage = () => {
             : [];
         const next: string | null = (data as any).nextCursor ?? null;
         setVideos(list);
+        cursorRef.current = next ?? undefined;
+        hasMoreRef.current = !!next;
         setCursor(next ?? undefined);
         setHasMore(!!next);
       })
@@ -95,9 +113,10 @@ export const AccountPage = () => {
   };
 
   const loadMore = useCallback(() => {
-    if (!userId || !hasMore || loadingMore) return;
+    if (!userId || !hasMoreRef.current || loadingMoreRef.current) return;
+    loadingMoreRef.current = true;
     setLoadingMore(true);
-    getUserVideos(userId, cursor)
+    getUserVideos(userId, cursorRef.current)
       .then(({ data }) => {
         const list = Array.isArray(data)
           ? data
@@ -105,13 +124,27 @@ export const AccountPage = () => {
             ? (data as any).videos
             : [];
         const next: string | null = (data as any).nextCursor ?? null;
-        setVideos((prev) => [...prev, ...list]);
+        setVideos((prev) => {
+          const seen = new Set(prev.map((v) => v.videoId));
+          return [
+            ...prev,
+            ...list.filter((v: VideoDto) => !seen.has(v.videoId)),
+          ];
+        });
+        cursorRef.current = next ?? undefined;
+        hasMoreRef.current = !!next;
         setCursor(next ?? undefined);
         setHasMore(!!next);
       })
-      .catch(() => setHasMore(false))
-      .finally(() => setLoadingMore(false));
-  }, [userId, cursor, hasMore, loadingMore]);
+      .catch(() => {
+        hasMoreRef.current = false;
+        setHasMore(false);
+      })
+      .finally(() => {
+        loadingMoreRef.current = false;
+        setLoadingMore(false);
+      });
+  }, [userId]); // stable — cursor/hasMore/loadingMore accessed via refs
 
   useEffect(() => {
     fetchVideos();
