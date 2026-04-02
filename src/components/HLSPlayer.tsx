@@ -10,6 +10,7 @@ import {
   Gesture,
   useMediaState,
   Menu,
+  isHLSProvider,
 } from "@vidstack/react";
 import {
   DefaultVideoLayout,
@@ -73,9 +74,17 @@ export const HLSPlayer = ({
         src={src}
         autoPlay
         playsInline
-        crossOrigin="use-credentials"
         className="w-full h-full"
         onError={() => setMediaError(true)}
+        onProviderChange={(provider) => {
+          if (isHLSProvider(provider)) {
+            provider.config = {
+              xhrSetup: (xhr: XMLHttpRequest) => {
+                xhr.withCredentials = true;
+              },
+            };
+          }
+        }}
       >
         <MediaProvider />
         <CenterControls />
