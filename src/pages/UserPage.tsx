@@ -114,7 +114,7 @@ export const UserPage = () => {
       {!loading && !error && videos.length === 0 ? (
         <div className="text-center py-20">
           <p className="text-neutral-500 dark:text-neutral-400 font-medium">
-            No public videos yet.
+            No videos yet.
           </p>
         </div>
       ) : (

@@ -1,11 +1,29 @@
-import { useState } from "react";
-import { loginWithGoogle } from "../api/auth.api";
+import { useState, useEffect } from "react";
+import { loginWithGoogle, registerWithGoogle } from "../api/auth.api";
 import { useAuthStore } from "../store/authStore";
 
 export const AuthModal = () => {
   const authModalOpen = useAuthStore((s) => s.authModalOpen);
   const setTokens = useAuthStore((s) => s.setTokens);
   const [tab, setTab] = useState<"signin" | "signup">("signin");
+  const [hint, setHint] = useState("");
+
+  useEffect(() => {
+    if (!authModalOpen) return;
+    const storedHint = sessionStorage.getItem("auth-hint");
+    const storedTab = sessionStorage.getItem("auth-tab") as
+      | "signin"
+      | "signup"
+      | null;
+    if (storedHint) {
+      setHint(storedHint);
+      sessionStorage.removeItem("auth-hint");
+    }
+    if (storedTab) {
+      setTab(storedTab);
+      sessionStorage.removeItem("auth-tab");
+    }
+  }, [authModalOpen]);
 
   if (!authModalOpen) return null;
 
@@ -13,11 +31,17 @@ export const AuthModal = () => {
 
   const handleGoogleSuccess = async (credential: string) => {
     try {
-      const { data } = await loginWithGoogle(credential);
+      const { data } = isSignUp
+        ? await registerWithGoogle(credential)
+        : await loginWithGoogle(credential);
       setTokens(data.accessToken, data.refreshToken);
-      // setTokens sets authModalOpen: false — modal closes automatically
-    } catch {
-      alert("Authentication failed. Please try again.");
+    } catch (err: any) {
+      if (!isSignUp && err?.response?.status === 401) {
+        setTab("signup");
+        setHint("No account found. Please sign up to continue.");
+      } else {
+        alert("Authentication failed. Please try again.");
+      }
     }
   };
 
@@ -35,6 +59,7 @@ export const AuthModal = () => {
   };
 
   const handleGithub = () => {
+    sessionStorage.setItem("github-auth-intent", tab);
     const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
     const redirectUri = encodeURIComponent(
       `${window.location.origin}/oauth/github/callback`,
@@ -77,7 +102,10 @@ export const AuthModal = () => {
         {/* Tabs */}
         <div className="flex border-b border-neutral-200 dark:border-neutral-800 mt-2">
           <button
-            onClick={() => setTab("signin")}
+            onClick={() => {
+              setTab("signin");
+              setHint("");
+            }}
             className={`flex-1 py-3 text-sm font-semibold transition-colors ${
               !isSignUp
                 ? "text-red-500 border-b-2 border-red-500 bg-red-50 dark:bg-red-950/30"
@@ -87,7 +115,10 @@ export const AuthModal = () => {
             Sign In
           </button>
           <button
-            onClick={() => setTab("signup")}
+            onClick={() => {
+              setTab("signup");
+              setHint("");
+            }}
             className={`flex-1 py-3 text-sm font-semibold transition-colors ${
               isSignUp
                 ? "text-red-500 border-b-2 border-red-500 bg-red-50 dark:bg-red-950/30"
@@ -108,6 +139,11 @@ export const AuthModal = () => {
                 ? "Join TinyFlix using your Google or GitHub account"
                 : "Sign in to continue watching"}
             </p>
+            {hint && (
+              <p className="text-xs text-amber-500 dark:text-amber-400 mt-2">
+                {hint}
+              </p>
+            )}
           </div>
 
           <div className="flex flex-col gap-3">

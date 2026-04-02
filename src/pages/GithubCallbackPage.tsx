@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginWithGithub } from "../api/auth.api";
+import { loginWithGithub, registerWithGithub } from "../api/auth.api";
 import { useAuthStore } from "../store/authStore";
 
 export const GithubCallbackPage = () => {
@@ -19,16 +19,30 @@ export const GithubCallbackPage = () => {
       return;
     }
 
+    const intent = sessionStorage.getItem("github-auth-intent") || "signin";
+    sessionStorage.removeItem("github-auth-intent");
+
+    const authFn = intent === "signup" ? registerWithGithub : loginWithGithub;
+
     // Backend handles code → access token exchange using its own client secret
-    loginWithGithub(code)
+    authFn(code)
       .then(({ data }) => {
         setTokens(data.accessToken, data.refreshToken);
         navigate("/", { replace: true });
       })
-      .catch((err: unknown) => {
-        const msg =
-          err instanceof Error ? err.message : "GitHub sign-in failed";
-        setErrorMsg(msg);
+      .catch((err: any) => {
+        if (intent === "signin" && err?.response?.status === 401) {
+          sessionStorage.setItem(
+            "auth-hint",
+            "No account found. Please sign up to continue.",
+          );
+          sessionStorage.setItem("auth-tab", "signup");
+          navigate("/", { replace: true });
+        } else {
+          const msg =
+            err instanceof Error ? err.message : "GitHub sign-in failed";
+          setErrorMsg(msg);
+        }
       });
   }, []);
 
