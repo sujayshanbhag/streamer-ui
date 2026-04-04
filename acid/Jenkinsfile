@@ -12,7 +12,7 @@ pipeline {
                 sh 'npm ci'
             }
         }
-        
+
         // stage('Test') {
         //     steps {
         //         sh 'npm run test'
@@ -22,8 +22,10 @@ pipeline {
         stage('Read Version') {
             steps {
                 script {
-                    def packageJson = readJSON file: 'package.json'
-                    env.VERSION = packageJson.version
+                    env.VERSION = sh(
+                        script: "node -p \"require('./package.json').version\"",
+                        returnStdout: true
+                    ).trim()
                 }
             }
         }
