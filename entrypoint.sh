@@ -7,4 +7,4 @@ window.__env__ = {
   VITE_GOOGLE_CLIENT_ID: "${VITE_GOOGLE_CLIENT_ID}"
 };
 EOF
-exec nginx -g "daemon off;"
+exec /docker-entrypoint.sh nginx -g "daemon off;"
