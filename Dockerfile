@@ -24,4 +24,4 @@ RUN rm /etc/nginx/conf.d/default.conf || true
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
-CMD ["/bin/sh", "/entrypoint.sh"]
+ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
