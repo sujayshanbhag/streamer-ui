@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import heroImg from "../assets/hero.png";
 import type { VideoDto } from "../types";
+import { config } from "../config/env";
 
-const CDN_BASE = import.meta.env.VITE_CDN_BASE_URL;
+const CDN_BASE = config.cdnUrl;
 
 export const VideoCard = ({ video }: { video: VideoDto }) => {
   const navigate = useNavigate();

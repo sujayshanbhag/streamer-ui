@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { loginWithGoogle, registerWithGoogle } from "../api/auth.api";
 import { useAuthStore } from "../store/authStore";
+import { config } from "../config/env";
 
 export const AuthModal = () => {
   const authModalOpen = useAuthStore((s) => s.authModalOpen);
@@ -49,7 +50,7 @@ export const AuthModal = () => {
     const g = (window as any).google;
     if (!g?.accounts?.id) return;
     g.accounts.id.initialize({
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      client_id: config.googleClientId,
       callback: ({ credential }: { credential: string }) => {
         handleGoogleSuccess(credential);
       },
@@ -60,7 +61,7 @@ export const AuthModal = () => {
 
   const handleGithub = () => {
     sessionStorage.setItem("github-auth-intent", tab);
-    const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
+    const clientId = config.githubClientId;
     const redirectUri = encodeURIComponent(
       `${window.location.origin}/oauth/github/callback`,
     );

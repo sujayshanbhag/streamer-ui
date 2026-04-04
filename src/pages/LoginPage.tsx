@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginWithGithub, loginWithGoogle } from "../api/auth.api";
 import { useAuthStore } from "../store/authStore";
+import { config } from "../config/env";
 
 export const LoginPage = () => {
   const { setTokens } = useAuthStore();
@@ -25,7 +26,7 @@ export const LoginPage = () => {
     const g = (window as any).google;
     if (!g?.accounts?.id) return;
     g.accounts.id.initialize({
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      client_id: config.googleClientId,
       callback: ({ credential }: { credential: string }) => {
         handleSuccess(credential, "google");
       },
@@ -35,7 +36,7 @@ export const LoginPage = () => {
   };
 
   const handleGithub = () => {
-    const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
+    const clientId = config.githubClientId;
     const redirectUri = encodeURIComponent(
       `${window.location.origin}/oauth/github/callback`,
     );
