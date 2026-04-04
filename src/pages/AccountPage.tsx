@@ -68,9 +68,8 @@ export const AccountPage = () => {
   const [videos, setVideos] = useState<VideoDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [reloading, setReloading] = useState(false);
-  const [cursor, setCursor] = useState<string | undefined>(undefined);
-  const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const userId = paramUserId || authUser?.id;
@@ -88,8 +87,7 @@ export const AccountPage = () => {
       setReloading(true);
       cursorRef.current = undefined;
       hasMoreRef.current = true;
-      setCursor(undefined);
-      setHasMore(true);
+      // state kept in refs for control; no UI binding for cursor/hasMore
     } else setLoading(true);
     getUserVideos(userId, undefined)
       .then(({ data }) => {
@@ -102,8 +100,6 @@ export const AccountPage = () => {
         setVideos(list);
         cursorRef.current = next ?? undefined;
         hasMoreRef.current = !!next;
-        setCursor(next ?? undefined);
-        setHasMore(!!next);
       })
       .catch(() => setVideos([]))
       .finally(() => {
@@ -133,12 +129,9 @@ export const AccountPage = () => {
         });
         cursorRef.current = next ?? undefined;
         hasMoreRef.current = !!next;
-        setCursor(next ?? undefined);
-        setHasMore(!!next);
       })
       .catch(() => {
         hasMoreRef.current = false;
-        setHasMore(false);
       })
       .finally(() => {
         loadingMoreRef.current = false;

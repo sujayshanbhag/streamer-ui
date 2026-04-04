@@ -1,0 +1,65 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Install') {
+            steps {
+                // use ci for reproducible installs
+                sh 'npm ci'
+            }
+        }
+        
+        // stage('Test') {
+        //     steps {
+        //         sh 'npm run test'
+        //     }
+        // }
+
+        stage('Read Version') {
+            steps {
+                script {
+                    def packageJson = readJSON file: 'package.json'
+                    env.VERSION = packageJson.version
+                }
+            }
+        }
+
+
+        stage('Docker Build') {
+            steps {
+                // build the image already tagged for GHCR so we can push directly
+                sh """docker build --label "org.opencontainers.image.source=https://github.com/sujayshanbhag/streamer-ui" -t ghcr.io/sujayshanbhag/streamer-ui:${env.VERSION} ."""
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'ghcr-credentials',
+                    usernameVariable: 'GHCR_USER',
+                    passwordVariable: 'GHCR_TOKEN'
+                )]) {
+                    sh """
+                        echo $GHCR_TOKEN | docker login ghcr.io -u $GHCR_USER --password-stdin
+                        docker push ghcr.io/sujayshanbhag/streamer-ui:${env.VERSION}
+                        docker logout
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Version ${env.VERSION} pushed to GHCR successfully!"
+        }
+        failure {
+            echo "❌ Pipeline failed — check console output."
+        }
+    }
+
+}

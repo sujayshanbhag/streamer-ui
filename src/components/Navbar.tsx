@@ -6,6 +6,9 @@ export const Navbar = () => {
   const { accessToken, user, logout } = useAuthStore();
   const navigate = useNavigate();
 
+  const appVersion =
+    typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "dev";
+
   return (
     <nav className="fixed top-0 left-0 right-0 h-14 z-50 flex items-center justify-between px-4 bg-white dark:bg-neutral-950 border-b border-neutral-200 dark:border-neutral-800">
       {/* Left: logo (padded to clear the sidebar) */}
@@ -35,6 +38,9 @@ export const Navbar = () => {
           </svg>
           <span className="text-xl font-bold text-neutral-900 dark:text-white leading-none">
             Tiny<span className="text-red-500">Flix</span>
+          </span>
+          <span className="ml-1 mt-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium  text-white bg-red-500">
+            v{appVersion}
           </span>
         </Link>
       </div>
