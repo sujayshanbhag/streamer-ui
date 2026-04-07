@@ -11,7 +11,7 @@ export const Navbar = () => {
 
   const params = new URLSearchParams(location.search);
   const initialQ = params.get("q") ?? "";
-  const [search, setSearch] = useState(initialQ);
+  const [, setSearch] = useState(initialQ);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => setSearch(initialQ), [initialQ]);
