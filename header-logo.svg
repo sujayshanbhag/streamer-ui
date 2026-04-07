@@ -1,0 +1,12 @@
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="64" height="64" preserveAspectRatio="xMidYMid meet" style="display:block">
+  <g transform="translate(0,1)">
+    <!-- slightly larger framed rect to fill more of the favicon area -->
+    <rect x="1" y="5" width="22" height="14" rx="2" fill="#ef4444" opacity="0.15" />
+    <rect x="1" y="5" width="22" height="14" rx="2" stroke="#ef4444" stroke-width="1.6" fill="none" />
+    <rect x="1.5" y="3" width="3" height="4" rx="0.5" fill="#ef4444" />
+    <rect x="6.5" y="3" width="3" height="4" rx="0.5" fill="#ef4444" />
+    <rect x="11.5" y="3" width="3" height="4" rx="0.5" fill="#ef4444" />
+    <rect x="16.5" y="3" width="3" height="4" rx="0.5" fill="#ef4444" />
+    <path d="M9 10l6 3-6 3V10z" fill="#ef4444" />
+  </g>
+</svg>

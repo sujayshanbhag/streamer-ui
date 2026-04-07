@@ -19,12 +19,12 @@ export const Navbar = () => {
   // Focus the search input when user types '/' anywhere (but not while typing in other inputs)
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
       const active = document.activeElement as HTMLElement | null;
       if (!active) return;
       const tag = active.tagName;
       const isEditable = active.isContentEditable;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || isEditable) return;
+      if (tag === "INPUT" || tag === "TEXTAREA" || isEditable) return;
       e.preventDefault();
       inputRef.current?.focus();
       const el = inputRef.current as HTMLInputElement | null;
@@ -34,8 +34,8 @@ export const Navbar = () => {
       }
     };
 
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
   const appVersion =
@@ -97,8 +97,6 @@ export const Navbar = () => {
       {/* Right: theme + auth */}
       <div className="flex items-center gap-3">
         <ThemeToggle />
-
-        
 
         {accessToken ? (
           <>

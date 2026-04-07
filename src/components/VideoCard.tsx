@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import heroImg from "../assets/hero.png";
+import logoSvg from "../assets/logo.svg";
 import type { VideoDto } from "../types";
 import { config } from "../config/env";
 
@@ -9,7 +9,7 @@ export const VideoCard = ({ video }: { video: VideoDto }) => {
   const navigate = useNavigate();
   const thumbnailSrc = video.thumbnailKey
     ? `${CDN_BASE}/${video.thumbnailKey}`
-    : heroImg;
+    : logoSvg;
 
   return (
     <div
@@ -22,7 +22,7 @@ export const VideoCard = ({ video }: { video: VideoDto }) => {
           src={thumbnailSrc}
           alt={video.title}
           onError={(e) => {
-            (e.currentTarget as HTMLImageElement).src = heroImg;
+            (e.currentTarget as HTMLImageElement).src = logoSvg;
           }}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
