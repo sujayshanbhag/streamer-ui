@@ -1,14 +1,15 @@
 import { api } from './axios';
-import type { CursorPage, VideoDto, StreamResponse, UserPageDto } from '../types';
+import type { CursorPage, VideoDto, StreamResponse, UserPageDto, AccountPageDto } from '../types';
 
-export const getLiveVideos = (cursor?: string, size = 10) =>
+// keyword: optional search term (server supports it as first param)
+export const getLiveVideos = (keyword?: string, cursor?: string, size = 10) =>
   api.get<CursorPage<VideoDto>>('/videos', {
-    params: { cursor, size },
+    params: { keyword, cursor, size },
   });
 
-export const getUserVideos = (userId: string | number, cursor?: string, size = 10) =>
-  api.get<CursorPage<VideoDto>>(`/videos/user/${userId}`, {
-    params: { cursor, size },
+export const getUserVideos = (keyword: string | undefined, userId: string | number, cursor?: string, size = 10) =>
+  api.get<AccountPageDto>(`/videos/user/${userId}`, {
+    params: { keyword, cursor, size },
   });
 
 export const getUserPage = (userId: string, cursor?: string, size = 10) =>

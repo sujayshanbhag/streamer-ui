@@ -13,6 +13,7 @@ export const config = {
   cdnUrl: get("VITE_CDN_BASE_URL"),
   githubClientId: get("VITE_GITHUB_CLIENT_ID"),
   googleClientId: get("VITE_GOOGLE_CLIENT_ID"),
+  maxUploadMB: 2048,
 };
 
 export {};

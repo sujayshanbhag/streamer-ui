@@ -9,6 +9,7 @@ export const UserPage = () => {
   const { userId } = useParams<{ userId: string }>();
 
   const [user, setUser] = useState<UserDto | null>(null);
+  const [totalVideos, setTotalVideos] = useState<number | null>(null);
   const [videos, setVideos] = useState<VideoDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +31,10 @@ export const UserPage = () => {
       const { data } = await getUserPage(userId, cursorRef.current);
       // Populate user info from the first page only
       if (!cursorRef.current && data.user) setUser(data.user);
+      // server may provide a total count for the user page
+      if (!cursorRef.current && typeof (data as any).totalVideos === "number") {
+        setTotalVideos((data as any).totalVideos);
+      }
 
       const incoming = data.videos?.videos ?? [];
       const next = data.videos?.nextCursor ?? undefined;
@@ -96,7 +101,13 @@ export const UserPage = () => {
                 </p>
               )}
               <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
-                {videos.length} video{videos.length !== 1 ? "s" : ""}
+                {typeof totalVideos === "number" ? totalVideos : videos.length}{" "}
+                video
+                {(typeof totalVideos === "number"
+                  ? totalVideos
+                  : videos.length) !== 1
+                  ? "s"
+                  : ""}
               </p>
             </>
           )}

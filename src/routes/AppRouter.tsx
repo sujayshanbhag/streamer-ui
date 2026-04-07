@@ -79,7 +79,7 @@ export const AppRouter = () => (
       {/* Sidebar is fixed + has `peer` class — main uses peer-hover:ml-56 */}
       <Sidebar />
 
-      <main className="flex-1 md:ml-60 min-w-0">
+      <main className="flex-1 ml-14 md:ml-60 min-w-0">
         <Routes>
           {/* /login redirects to home — the auth modal handles unauthenticated access */}
           <Route path="/login" element={<Navigate to="/" replace />} />

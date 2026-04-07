@@ -1,10 +1,42 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { ThemeToggle } from "./ThemeToggle";
+import { useState, useEffect, useRef } from "react";
+import SearchBar from "./SearchBar";
 
 export const Navbar = () => {
   const { accessToken, user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const params = new URLSearchParams(location.search);
+  const initialQ = params.get("q") ?? "";
+  const [search, setSearch] = useState(initialQ);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => setSearch(initialQ), [initialQ]);
+
+  // Focus the search input when user types '/' anywhere (but not while typing in other inputs)
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+      const active = document.activeElement as HTMLElement | null;
+      if (!active) return;
+      const tag = active.tagName;
+      const isEditable = active.isContentEditable;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || isEditable) return;
+      e.preventDefault();
+      inputRef.current?.focus();
+      const el = inputRef.current as HTMLInputElement | null;
+      if (el) {
+        const len = el.value.length;
+        el.setSelectionRange(len, len);
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   const appVersion =
     typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "dev";
@@ -12,7 +44,7 @@ export const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 h-14 z-50 flex items-center justify-between px-4 bg-white dark:bg-neutral-950 border-b border-neutral-200 dark:border-neutral-800">
       {/* Left: logo (padded to clear the sidebar) */}
-      <div className="flex items-center pl-2">
+      <div className="flex items-center pl-0">
         <Link to="/" className="flex items-center gap-1.5">
           <svg
             viewBox="0 0 24 24"
@@ -39,15 +71,34 @@ export const Navbar = () => {
           <span className="text-xl font-bold text-neutral-900 dark:text-white leading-none">
             Tiny<span className="text-red-500">Flix</span>
           </span>
-          <span className="ml-1 mt-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium  text-white bg-red-500">
+          <span className="ml-1 mt-1 hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium  text-white bg-red-500">
             v{appVersion}
           </span>
         </Link>
       </div>
 
+      {/* Center: search */}
+      <div className="flex-1 px-4">
+        <div className="max-w-xl mx-auto">
+          <SearchBar
+            ref={inputRef}
+            initialQuery={initialQ}
+            placeholder="Search videos"
+            onSearch={(q) => {
+              setSearch(q);
+              const trimmed = q.trim();
+              if (trimmed) navigate(`/?q=${encodeURIComponent(trimmed)}`);
+              else navigate(`/`);
+            }}
+          />
+        </div>
+      </div>
+
       {/* Right: theme + auth */}
       <div className="flex items-center gap-3">
         <ThemeToggle />
+
+        
 
         {accessToken ? (
           <>

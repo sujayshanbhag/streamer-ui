@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { config } from "../config/env";
 import { useNavigate } from "react-router-dom";
 import { getPresignedUrl, uploadToS3 } from "../api/upload.api";
 
@@ -9,6 +10,7 @@ export const UploadPage = () => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [videoProgress, setVideoProgress] = useState(0);
   const [thumbProgress, setThumbProgress] = useState(0);
   const [status, setStatus] = useState<"idle" | "uploading" | "done" | "error">(
@@ -35,7 +37,15 @@ export const UploadPage = () => {
         thumbnail?.name,
       );
 
-      // Upload video and thumbnail in parallel
+      const bytesToMB = (b: number) => Math.round((b / (1024 * 1024)) * 100) / 100;
+      if (!videoFile || !title) return;
+      setErrorMsg(null);
+
+      const maxMB = config.maxUploadMB;
+      if (videoFile.size / (1024 * 1024) > maxMB) {
+        setErrorMsg(`Selected video is too large (${bytesToMB(videoFile.size)} MB). Max is ${maxMB} MB.`);
+        return;
+      }
       await Promise.all([
         uploadToS3(data.videoSignedUrl, videoFile, setVideoProgress),
         thumbnail && data.thumbnailSignedUrl
@@ -188,6 +198,9 @@ export const UploadPage = () => {
           <p className="text-red-500 text-sm">
             ❌ Upload failed. Please try again.
           </p>
+        )}
+        {errorMsg && (
+          <p className="text-red-500 text-sm">{errorMsg}</p>
         )}
 
         <button

@@ -2,15 +2,24 @@ import { useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 import { useInfiniteVideos } from "../hooks/useInfiniteVideos";
 import { VideoCard } from "../components/VideoCard";
+import { useLocation } from "react-router-dom";
 
 export const HomePage = () => {
-  const { videos, loading, hasMore, loadMore } = useInfiniteVideos();
+  const location = useLocation();
+  const q = new URLSearchParams(location.search).get("q") ?? undefined;
+
+  const { videos, loading, hasMore, loadMore } = useInfiniteVideos(q);
   const { ref, inView } = useInView({ threshold: 0.1 });
 
   // Load next page when sentinel enters viewport (initial load handled in hook)
   useEffect(() => {
     if (inView && !loading && hasMore) loadMore();
   }, [inView]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // When keyword changes, scroll to top so user sees new results
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [q]);
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getUserVideos } from "../api/videos.api";
+import SearchBar from "../components/SearchBar";
 import { useAuthStore } from "../store/authStore";
 import type { VideoDto } from "../types";
 
@@ -67,6 +68,7 @@ export const AccountPage = () => {
   const navigate = useNavigate();
   const [videos, setVideos] = useState<VideoDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalVideos, setTotalVideos] = useState<number | null>(null);
   const [reloading, setReloading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
@@ -77,6 +79,7 @@ export const AccountPage = () => {
   const cursorRef = useRef<string | undefined>(undefined);
   const hasMoreRef = useRef(true);
   const loadingMoreRef = useRef(false);
+  const keywordRef = useRef<string | undefined>(undefined);
 
   const fetchVideos = (isReload = false) => {
     if (!userId) {
@@ -87,16 +90,22 @@ export const AccountPage = () => {
       setReloading(true);
       cursorRef.current = undefined;
       hasMoreRef.current = true;
+      keywordRef.current = undefined;
       // state kept in refs for control; no UI binding for cursor/hasMore
     } else setLoading(true);
-    getUserVideos(userId, undefined)
+    getUserVideos(keywordRef.current, userId, undefined)
       .then(({ data }) => {
-        const list = Array.isArray(data)
-          ? data
-          : Array.isArray((data as any).videos)
-            ? (data as any).videos
+        // data.videos may be a CursorPage with { videos, nextCursor }
+        const list = Array.isArray((data as any).videos)
+          ? (data as any).videos
+          : Array.isArray((data as any).videos?.videos)
+            ? (data as any).videos.videos
             : [];
-        const next: string | null = (data as any).nextCursor ?? null;
+        const next: string | null = (data as any).videos?.nextCursor ?? null;
+        // server-provided totalVideos (AccountPageDto/UserPageDto)
+        if (typeof (data as any).totalVideos === 'number') {
+          setTotalVideos((data as any).totalVideos);
+        }
         setVideos(list);
         cursorRef.current = next ?? undefined;
         hasMoreRef.current = !!next;
@@ -112,14 +121,14 @@ export const AccountPage = () => {
     if (!userId || !hasMoreRef.current || loadingMoreRef.current) return;
     loadingMoreRef.current = true;
     setLoadingMore(true);
-    getUserVideos(userId, cursorRef.current)
+    getUserVideos(keywordRef.current, userId, cursorRef.current)
       .then(({ data }) => {
-        const list = Array.isArray(data)
-          ? data
-          : Array.isArray((data as any).videos)
-            ? (data as any).videos
+        const list = Array.isArray((data as any).videos)
+          ? (data as any).videos
+          : Array.isArray((data as any).videos?.videos)
+            ? (data as any).videos.videos
             : [];
-        const next: string | null = (data as any).nextCursor ?? null;
+        const next: string | null = (data as any).videos?.nextCursor ?? null;
         setVideos((prev) => {
           const seen = new Set(prev.map((v) => v.videoId));
           return [
@@ -143,6 +152,18 @@ export const AccountPage = () => {
     fetchVideos();
   }, [userId]);
 
+  // handle searches from the page search bar
+  const onSearch = (kw: string) => {
+    const trimmed = kw.trim();
+    // set keyword for subsequent requests
+    keywordRef.current = trimmed || undefined;
+    // reset cursor and list and fetch fresh
+    cursorRef.current = undefined;
+    hasMoreRef.current = true;
+    setVideos([]);
+    fetchVideos();
+  };
+
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
@@ -154,7 +175,8 @@ export const AccountPage = () => {
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [loadMore]);
+    // re-run when loading/videos change so we attach after the sentinel is rendered
+  }, [loadMore, loading, videos.length]);
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
@@ -166,7 +188,7 @@ export const AccountPage = () => {
           </h1>
           <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
             {!loading &&
-              `${videos.length} video${videos.length !== 1 ? "s" : ""} uploaded`}
+              `${typeof totalVideos === "number" ? totalVideos : videos.length} video${(typeof totalVideos === "number" ? totalVideos : videos.length) !== 1 ? "s" : ""} uploaded`}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -197,6 +219,11 @@ export const AccountPage = () => {
             + Upload
           </button>
         </div>
+      </div>
+
+      {/* Page-level search */}
+      <div className="max-w-5xl mx-auto mb-4">
+        <SearchBar initialQuery={""} placeholder="Search your videos" onSearch={onSearch} />
       </div>
 
       {/* Info text */}

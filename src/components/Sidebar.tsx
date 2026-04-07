@@ -19,7 +19,7 @@ const NavItem = ({
   return (
     <Link
       to={to}
-      className={`flex items-center gap-4 px-6 py-4 text-xl transition-colors ${
+      className={`group relative flex items-center gap-4 px-4 py-3 text-xl transition-colors ${
         active
           ? "font-extrabold text-neutral-900 dark:text-white"
           : "font-semibold text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
@@ -28,7 +28,8 @@ const NavItem = ({
       <span className="w-7 h-7 flex items-center justify-center shrink-0">
         {icon}
       </span>
-      <span>{label}</span>
+      {/* label hidden on small screens; shown on md and up */}
+      <span className="hidden md:inline">{label}</span>
     </Link>
   );
 };
@@ -37,7 +38,8 @@ export const Sidebar = () => {
   const { accessToken } = useAuthStore();
 
   return (
-    <aside className="hidden md:flex fixed left-0 top-14 bottom-0 w-60 flex-col py-6 bg-white dark:bg-neutral-950 z-40 border-r border-neutral-200 dark:border-neutral-800">
+    // show a compact icon-only sidebar on small screens (w-14), full on md+
+    <aside className="fixed left-0 top-14 bottom-0 z-40 flex flex-col py-4 bg-white dark:bg-neutral-950 border-r border-neutral-200 dark:border-neutral-800 w-14 md:w-60">
       <NavItem
         icon={
           <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">

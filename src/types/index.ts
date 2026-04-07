@@ -23,6 +23,12 @@ export interface UserDto {
 export interface UserPageDto {
   user: UserDto;
   videos: CursorPage<VideoDto>;
+  totalVideos?: number;
+}
+
+export interface AccountPageDto {
+  totalVideos: number;
+  videos: CursorPage<VideoDto>;
 }
 
 export interface AuthResponse {
