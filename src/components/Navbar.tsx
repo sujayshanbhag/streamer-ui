@@ -38,6 +38,20 @@ export const Navbar = () => {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!profileOpen) return;
+    const onClickOutside = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [profileOpen]);
+
   const appVersion =
     typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "dev";
 
@@ -99,9 +113,9 @@ export const Navbar = () => {
         <ThemeToggle />
 
         {accessToken ? (
-          <>
+          <div className="relative" ref={profileRef}>
             <button
-              onClick={() => navigate(`/user/${user?.id ?? ""}`)}
+              onClick={() => setProfileOpen((o) => !o)}
               className="w-8 h-8 rounded-full bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center text-neutral-600 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors"
               aria-label="My account"
             >
@@ -110,13 +124,24 @@ export const Navbar = () => {
                 <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
               </svg>
             </button>
-            <button
-              onClick={logout}
-              className="hidden sm:block text-xs text-neutral-500 dark:text-neutral-400 hover:text-red-500 dark:hover:text-red-400 transition-colors font-medium"
-            >
-              Logout
-            </button>
-          </>
+            {profileOpen && (
+              <div className="absolute right-0 mt-2 w-22 rounded-lg shadow-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 py-1 z-50">
+                <button
+                  onClick={() => { setProfileOpen(false); navigate(`/user/${user?.id ?? ""}`); }}
+                  className="w-full text-left px-4 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                >
+                  Profile
+                </button>
+                <hr className="border-neutral-200 dark:border-neutral-700 my-1" />
+                <button
+                  onClick={() => { setProfileOpen(false); logout(); }}
+                  className="w-full text-left px-4 text-sm text-red-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
         ) : (
           <Link
             to="/login"
