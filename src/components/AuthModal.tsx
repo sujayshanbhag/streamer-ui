@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { loginWithGoogle, registerWithGoogle } from "../api/auth.api";
+import { loginWithGoogleCode, registerWithGoogleCode } from "../api/auth.api";
 import { useAuthStore } from "../store/authStore";
 import { config } from "../config/env";
 
@@ -30,33 +30,51 @@ export const AuthModal = () => {
 
   const isSignUp = tab === "signup";
 
-  const handleGoogleSuccess = async (credential: string) => {
+  const handleGoogleSuccess = async (code: string) => {
     try {
       const { data } = isSignUp
-        ? await registerWithGoogle(credential)
-        : await loginWithGoogle(credential);
+        ? await registerWithGoogleCode(code, "postmessage")
+        : await loginWithGoogleCode(code, "postmessage");
       setTokens(data.accessToken, data.refreshToken);
     } catch (err: any) {
-      if (!isSignUp && err?.response?.status === 401) {
+      const status = err?.response?.status;
+      const data = err?.response?.data;
+      const rawMessage =
+        data?.message ??
+        data?.error ??
+        data?.errorMessage ??
+        (typeof data === "string" ? data : "");
+      const message = String(rawMessage || "").toLowerCase();
+      const isAlreadyExists =
+        message.includes("already exists") ||
+        message.includes("already registered") ||
+        (message.includes("email") && message.includes("exist"));
+
+      if (!isSignUp && status === 401) {
         setTab("signup");
         setHint("No account found. Please sign up to continue.");
+      } else if (isSignUp && status === 401 && isAlreadyExists) {
+        setTab("signin");
+        setHint("Account already exists. Please sign in.");
       } else {
-        alert("Authentication failed. Please try again.");
+        setHint("Authentication failed. Please try again.");
       }
     }
   };
 
   const handleGoogleClick = () => {
     const g = (window as any).google;
-    if (!g?.accounts?.id) return;
-    g.accounts.id.initialize({
+    if (!g?.accounts?.oauth2) return;
+    const client = g.accounts.oauth2.initCodeClient({
       client_id: config.googleClientId,
-      callback: ({ credential }: { credential: string }) => {
-        handleGoogleSuccess(credential);
+      scope: "openid email profile",
+      ux_mode: "popup",
+      callback: ({ code, error }: { code?: string; error?: string }) => {
+        if (error || !code) return;
+        handleGoogleSuccess(code);
       },
-      cancel_on_tap_outside: false,
     });
-    g.accounts.id.prompt();
+    client.requestCode();
   };
 
   const handleGithub = () => {

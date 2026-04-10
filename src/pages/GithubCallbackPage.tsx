@@ -31,17 +31,37 @@ export const GithubCallbackPage = () => {
         navigate("/", { replace: true });
       })
       .catch((err: any) => {
-        if (intent === "signin" && err?.response?.status === 401) {
+        const status = err?.response?.status;
+        const data = err?.response?.data;
+        const rawMessage =
+          data?.message ??
+          data?.error ??
+          data?.errorMessage ??
+          (typeof data === "string" ? data : "");
+        const message = String(rawMessage || "").toLowerCase();
+        const isAlreadyExists =
+          message.includes("already exists") ||
+          message.includes("already registered") ||
+          (message.includes("email") && message.includes("exist"));
+
+        if (intent === "signin" && status === 401) {
           sessionStorage.setItem(
             "auth-hint",
             "No account found. Please sign up to continue.",
           );
           sessionStorage.setItem("auth-tab", "signup");
           navigate("/", { replace: true });
+        } else if (intent === "signup" && status === 401 && isAlreadyExists) {
+          sessionStorage.setItem(
+            "auth-hint",
+            "Account already exists. Please sign in.",
+          );
+          sessionStorage.setItem("auth-tab", "signin");
+          navigate("/", { replace: true });
         } else {
-          const msg =
+          const errMsg =
             err instanceof Error ? err.message : "GitHub sign-in failed";
-          setErrorMsg(msg);
+          setErrorMsg(errMsg);
         }
       });
   }, []);
