@@ -283,32 +283,47 @@ export const AccountPage = () => {
           </div>
         ) : (
           <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
-            {videos.map((v) => (
-              <div
-                key={v.videoId}
-                onClick={() => navigate(`/video/${v.videoId}`)}
-                className="group cursor-pointer px-5 py-4 flex flex-col sm:grid sm:grid-cols-[2fr_3fr_1.5fr_1fr] gap-2 sm:gap-4 items-start sm:items-center hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
-              >
-                {/* Title */}
-                <span className="font-semibold text-sm text-neutral-900 dark:text-white group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors line-clamp-1">
-                  {v.title}
-                </span>
+            {videos.map((v) => {
+              const isLive = (v.status ?? "").toUpperCase() === "LIVE";
+              return (
+                <div
+                  key={v.videoId}
+                  onClick={() => {
+                    if (isLive) navigate(`/video/${v.videoId}`);
+                  }}
+                  className={`group px-5 py-4 flex flex-col sm:grid sm:grid-cols-[2fr_3fr_1.5fr_1fr] gap-2 sm:gap-4 items-start sm:items-center transition-colors ${
+                    isLive
+                      ? "cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
+                      : "cursor-default"
+                  }`}
+                >
+                  {/* Title */}
+                  <span
+                    className={`font-semibold text-sm text-neutral-900 dark:text-white line-clamp-1 ${
+                      isLive
+                        ? "group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors"
+                        : ""
+                    }`}
+                  >
+                    {v.title}
+                  </span>
 
-                {/* Date */}
-                <span className="text-xs text-neutral-400 dark:text-neutral-500">
-                  {new Date(v.createdAt).toLocaleDateString(undefined, {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </span>
+                  {/* Date */}
+                  <span className="text-xs text-neutral-400 dark:text-neutral-500">
+                    {new Date(v.createdAt).toLocaleDateString(undefined, {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
 
-                {/* Status */}
-                <div>
-                  <StatusBadge status={v.status} />
+                  {/* Status */}
+                  <div>
+                    <StatusBadge status={v.status} />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
         {/* Infinite scroll sentinel */}
