@@ -18,3 +18,7 @@ export const registerWithGoogleCode = (code: string, redirectUri: string) =>
 
 export const registerWithGithub = (authorizationCode: string) =>
   api.post<AuthResponse>('/auth/register', { type: 'GITHUB', authorizationCode });
+
+export const loginAsGuest = () =>
+  api.post<AuthResponse>('/auth/guest');
+

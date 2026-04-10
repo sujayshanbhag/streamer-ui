@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import SearchBar from "./SearchBar";
 
 export const Navbar = () => {
-  const { accessToken, user, logout } = useAuthStore();
+  const { accessToken, user, logout, isGuest } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -44,7 +44,10 @@ export const Navbar = () => {
   useEffect(() => {
     if (!profileOpen) return;
     const onClickOutside = (e: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(e.target as Node)
+      ) {
         setProfileOpen(false);
       }
     };
@@ -125,16 +128,26 @@ export const Navbar = () => {
               </svg>
             </button>
             {profileOpen && (
-              <div className="absolute right-0 mt-2 w-22 rounded-lg shadow-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 py-1 z-50">
+              <div className="absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 py-1 z-50">
+                {!isGuest && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setProfileOpen(false);
+                        navigate(`/user/${user?.id ?? ""}`);
+                      }}
+                      className="w-full text-left px-4 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                    >
+                      Profile
+                    </button>
+                    <hr className="border-neutral-200 dark:border-neutral-700 my-1" />
+                  </>
+                )}
                 <button
-                  onClick={() => { setProfileOpen(false); navigate(`/user/${user?.id ?? ""}`); }}
-                  className="w-full text-left px-4 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                >
-                  Profile
-                </button>
-                <hr className="border-neutral-200 dark:border-neutral-700 my-1" />
-                <button
-                  onClick={() => { setProfileOpen(false); logout(); }}
+                  onClick={() => {
+                    setProfileOpen(false);
+                    logout();
+                  }}
                   className="w-full text-left px-4 text-sm text-red-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                 >
                   Logout

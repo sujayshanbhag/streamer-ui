@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
-import { loginWithGoogleCode, registerWithGoogleCode } from "../api/auth.api";
+import {
+  loginWithGoogleCode,
+  registerWithGoogleCode,
+  loginAsGuest,
+} from "../api/auth.api";
 import { useAuthStore } from "../store/authStore";
 import { config } from "../config/env";
 
@@ -29,6 +33,15 @@ export const AuthModal = () => {
   if (!authModalOpen) return null;
 
   const isSignUp = tab === "signup";
+
+  const handleGuest = async () => {
+    try {
+      const { data } = await loginAsGuest();
+      setTokens(data.accessToken, data.refreshToken);
+    } catch {
+      setHint("Guest sign-in failed. Please try again.");
+    }
+  };
 
   const handleGoogleSuccess = async (code: string) => {
     try {
@@ -87,10 +100,10 @@ export const AuthModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-100 backdrop-blur-md bg-black/50 flex items-center justify-center">
-      <div className="w-80 bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+    <div className="fixed inset-0 z-100 backdrop-blur-md bg-black/50 flex items-center justify-center px-4">
+      <div className="w-full max-w-sm bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-2 pt-6 pb-2">
+        <div className="flex items-center justify-center gap-2 pt-6 pb-3">
           <svg
             viewBox="0 0 24 24"
             className="w-7 h-7 text-red-500"
@@ -119,7 +132,7 @@ export const AuthModal = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-neutral-200 dark:border-neutral-800 mt-2">
+        <div className="flex border-b border-neutral-200 dark:border-neutral-800">
           <button
             onClick={() => {
               setTab("signin");
@@ -148,7 +161,7 @@ export const AuthModal = () => {
           </button>
         </div>
 
-        <div className="p-6 flex flex-col gap-5">
+        <div className="p-6 flex flex-col gap-4">
           <div className="text-center">
             <h2 className="text-lg font-bold text-neutral-900 dark:text-white">
               {isSignUp ? "Create your account" : "Welcome back"}
@@ -164,7 +177,6 @@ export const AuthModal = () => {
               </p>
             )}
           </div>
-
           <div className="flex flex-col gap-3">
             <button
               onClick={handleGoogleClick}
@@ -201,6 +213,25 @@ export const AuthModal = () => {
               {isSignUp ? "Sign up with GitHub" : "Sign in with GitHub"}
             </button>
           </div>
+
+          {/* Guest login — only for Sign In tab */}
+          {!isSignUp && (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
+                <span className="text-[11px] uppercase tracking-[0.16em] text-neutral-400 dark:text-neutral-500">
+                  Or
+                </span>
+                <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
+              </div>
+              <button
+                onClick={handleGuest}
+                className="w-full py-2.5 rounded border border-neutral-300 dark:border-neutral-700 text-neutral-800 dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 text-sm font-semibold transition-colors"
+              >
+                Login as guest
+              </button>
+            </div>
+          )}
 
           <p className="text-center text-xs text-neutral-400 dark:text-neutral-500">
             {isSignUp ? "Already have an account? " : "Don't have an account? "}

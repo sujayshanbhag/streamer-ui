@@ -57,7 +57,24 @@ const PrivateRoute = ({ children }: { children: JSX.Element }) => {
 
 const UploadFab = () => {
   const token = useAuthStore((s) => s.accessToken);
+  const canUpload = useAuthStore((s) => s.canUpload);
   if (!token) return null;
+
+  if (!canUpload) {
+    // Render a disabled/gray FAB for users without upload permission
+    return (
+      <div
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-neutral-300 dark:bg-neutral-800 rounded-full flex items-center justify-center shadow text-neutral-500 cursor-not-allowed"
+        aria-label="Upload video disabled"
+        title="Upload disabled"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+        </svg>
+      </div>
+    );
+  }
+
   return (
     <Link
       to="/upload"

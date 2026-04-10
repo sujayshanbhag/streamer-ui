@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useInView } from "react-intersection-observer";
 import { VideoCard } from "../components/VideoCard";
-import { getUserPage } from "../api/videos.api";
+import { getUserPage } from "../api/user.api";
+import Error404 from "./Error404";
 import type { UserDto, VideoDto } from "../types";
 
 export const UserPage = () => {
@@ -13,6 +14,7 @@ export const UserPage = () => {
   const [videos, setVideos] = useState<VideoDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notFound, setNotFound] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
   const cursorRef = useRef<string | undefined>(undefined);
@@ -45,7 +47,9 @@ export const UserPage = () => {
         const existingIds = new Set(prev.map((v) => v.videoId));
         return [
           ...prev,
-          ...incoming.filter((v) => !existingIds.has(v.videoId)),
+          ...incoming.filter(
+            (v: { videoId: string }) => !existingIds.has(v.videoId),
+          ),
         ];
       });
     } catch {
@@ -60,7 +64,44 @@ export const UserPage = () => {
   useEffect(() => {
     if (initialisedRef.current) return;
     initialisedRef.current = true;
-    loadMore();
+
+    (async () => {
+      if (!userId) return;
+      setLoading(true);
+      setError(null);
+      setNotFound(false);
+      try {
+        const { data } = await getUserPage(userId, undefined);
+        if (!data || (data as any).user === null) {
+          setNotFound(true);
+          hasMoreRef.current = false;
+          setHasMore(false);
+          return;
+        }
+
+        // populate user and first page from response
+        if (data.user) setUser(data.user as UserDto);
+        if (typeof (data as any).totalVideos === "number")
+          setTotalVideos((data as any).totalVideos);
+        const incoming = data.videos?.videos ?? [];
+        const next = data.videos?.nextCursor ?? undefined;
+        cursorRef.current = next;
+        hasMoreRef.current = !!next;
+        setHasMore(!!next);
+        setVideos(incoming ?? []);
+      } catch (err: any) {
+        const st = err?.response?.status;
+        if (st === 404 || st === 401) {
+          setNotFound(true);
+          hasMoreRef.current = false;
+          setHasMore(false);
+        } else {
+          setError("Failed to load videos. Please try again.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [loadMore]);
 
   // Sentinel-driven pagination
@@ -69,6 +110,8 @@ export const UserPage = () => {
   }, [inView, loading, hasMore, loadMore]);
 
   const displayName = user?.name ?? (userId ? `User ${userId}` : "Channel");
+
+  if (notFound) return <Error404 />;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">

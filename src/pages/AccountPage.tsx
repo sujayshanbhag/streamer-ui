@@ -64,7 +64,7 @@ const StatusBadge = ({ status }: { status?: string }) => {
 
 export const AccountPage = () => {
   const { userId: paramUserId } = useParams<{ userId?: string }>();
-  const { user: authUser } = useAuthStore();
+  const { user: authUser, canUpload, isGuest } = useAuthStore();
   const navigate = useNavigate();
   const [videos, setVideos] = useState<VideoDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,7 +103,7 @@ export const AccountPage = () => {
             : [];
         const next: string | null = (data as any).videos?.nextCursor ?? null;
         // server-provided totalVideos (AccountPageDto/UserPageDto)
-        if (typeof (data as any).totalVideos === 'number') {
+        if (typeof (data as any).totalVideos === "number") {
           setTotalVideos((data as any).totalVideos);
         }
         setVideos(list);
@@ -213,8 +213,16 @@ export const AccountPage = () => {
             </svg>
           </button>
           <button
-            onClick={() => navigate("/upload")}
-            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm font-semibold transition-colors"
+            onClick={() => {
+              if (!canUpload) return;
+              navigate("/upload");
+            }}
+            disabled={!canUpload}
+            className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+              canUpload
+                ? "bg-red-500 hover:bg-red-600 text-white"
+                : "bg-neutral-300 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 cursor-not-allowed"
+            }`}
           >
             + Upload
           </button>
@@ -223,7 +231,12 @@ export const AccountPage = () => {
 
       {/* Page-level search */}
       <div className="max-w-5xl mx-auto mb-4">
-        <SearchBar initialQuery={""} placeholder="Search your videos" onSearch={onSearch} />
+          <SearchBar
+            initialQuery={""}
+            placeholder="Search your videos"
+            onSearch={onSearch}
+            disabled={videos.length === 0}
+          />
       </div>
 
       {/* Info text */}
@@ -259,27 +272,61 @@ export const AccountPage = () => {
           </div>
         ) : videos.length === 0 ? (
           <div className="text-center py-20">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              className="w-12 h-12 mx-auto text-neutral-300 dark:text-neutral-600 mb-4"
-            >
-              <path d="M15 10l4.553-2.07A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
-            </svg>
-            <p className="text-neutral-500 dark:text-neutral-400 font-medium">
-              No videos uploaded yet
-            </p>
-            <p className="text-sm text-neutral-400 dark:text-neutral-500 mt-1">
-              Upload your first video to get started
-            </p>
-            <button
-              onClick={() => navigate("/upload")}
-              className="mt-4 px-5 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm font-semibold transition-colors"
-            >
-              Upload a video
-            </button>
+            {isGuest ? (
+              <>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  className="w-12 h-12 mx-auto text-red-600 mb-4"
+                >
+                  <circle cx="12" cy="12" r="8" />
+                  <path d="M8 8l8 8" />
+                </svg>
+                <p className="text-red-500  font-medium">
+                  Guest users are not allowed to upload videos.
+                </p>
+                <p className="text-red-500  font-medium">
+                  Please sign up to enjoy the full experience.
+                </p>
+                <p className="text-sm text-neutral-400 dark:text-neutral-500 mt-1">
+                  Create an account to upload and manage your videos.
+                </p>
+              </>
+            ) : (
+              <>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  className="w-12 h-12 mx-auto text-neutral-300 dark:text-neutral-600 mb-4"
+                >
+                  <path d="M15 10l4.553-2.07A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
+                </svg>
+                <p className="text-neutral-500 dark:text-neutral-400 font-medium">
+                  No videos uploaded yet
+                </p>
+                <p className="text-sm text-neutral-400 dark:text-neutral-500 mt-1">
+                  Upload your first video to get started
+                </p>
+                <button
+                  onClick={() => {
+                    if (!canUpload) return;
+                    navigate("/upload");
+                  }}
+                  disabled={!canUpload}
+                  className={`mt-4 px-5 py-2 rounded-full text-sm font-semibold transition-colors ${
+                    canUpload
+                      ? "bg-red-500 hover:bg-red-600 text-white"
+                      : "bg-neutral-300 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 cursor-not-allowed"
+                  }`}
+                >
+                  Upload a video
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <div className="divide-y divide-neutral-100 dark:divide-neutral-800">

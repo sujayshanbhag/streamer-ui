@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { HLSPlayer } from "../components/HLSPlayer";
 import { getStreamUrls, getVideoById } from "../api/videos.api";
+import Error404 from "./Error404";
 import type { StreamResponse, VideoDto } from "../types";
 
 type QualityKey = "url1080p" | "url720p" | "url360p";
@@ -14,6 +15,7 @@ export const VideoPage = () => {
   const [stream, setStream] = useState<StreamResponse | null>(null);
   const [quality, setQuality] = useState<QualityKey>("url1080p");
   const [streamError, setStreamError] = useState("");
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -29,10 +31,17 @@ export const VideoPage = () => {
           .then(({ data: streamData }) => setStream(streamData))
           .catch(() => setStreamError("Failed to load video."));
       })
-      .catch(() => {
-        getStreamUrls(id)
-          .then(({ data }) => setStream(data))
-          .catch(() => setStreamError("Failed to load video."));
+      .catch((err: any) => {
+        const st = err?.response?.status;
+        if (st === 404) {
+          console.log("video not found");
+          setNotFound(true);
+        } else {
+          // for other errors, attempt to load stream as a fallback
+          getStreamUrls(id)
+            .then(({ data }) => setStream(data))
+            .catch(() => setStreamError("Failed to load video."));
+        }
       })
       .finally(() => setVideoLoading(false));
   }, [id]);
@@ -46,6 +55,8 @@ export const VideoPage = () => {
     { label: "720p", value: "url720p" as const },
     { label: "360p", value: "url360p" as const },
   ];
+
+  if (notFound) return <Error404 />;
 
   return (
     <div className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6">

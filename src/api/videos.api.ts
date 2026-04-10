@@ -1,5 +1,5 @@
 import { api } from './axios';
-import type { CursorPage, VideoDto, StreamResponse, UserPageDto, AccountPageDto } from '../types';
+import type { CursorPage, VideoDto, StreamResponse, AccountPageDto } from '../types';
 
 // keyword: optional search term (server supports it as first param)
 export const getLiveVideos = (keyword?: string, cursor?: string, size = 10) =>
@@ -12,10 +12,6 @@ export const getUserVideos = (keyword: string | undefined, userId: string | numb
     params: { keyword, cursor, size },
   });
 
-export const getUserPage = (userId: string, cursor?: string, size = 10) =>
-  api.get<UserPageDto>(`/user/${userId}/videos`, {
-    params: { cursor, size },
-  });
 
 // This call sets CloudFront cookies on the response automatically
 // withCredentials: true on the axios instance handles this

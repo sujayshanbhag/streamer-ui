@@ -2,9 +2,11 @@ import { useRef, useState } from "react";
 import { config } from "../config/env";
 import { useNavigate } from "react-router-dom";
 import { getPresignedUrl, uploadToS3 } from "../api/upload.api";
+import { useAuthStore } from "../store/authStore";
 
 export const UploadPage = () => {
   const navigate = useNavigate();
+  const canUpload = useAuthStore((s) => s.canUpload);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -25,6 +27,7 @@ export const UploadPage = () => {
   };
 
   const handleUpload = async () => {
+    if (!canUpload) return;
     if (!videoFile || !title) return;
     setStatus("uploading");
     setVideoProgress(0);
@@ -37,13 +40,16 @@ export const UploadPage = () => {
         thumbnail?.name,
       );
 
-      const bytesToMB = (b: number) => Math.round((b / (1024 * 1024)) * 100) / 100;
+      const bytesToMB = (b: number) =>
+        Math.round((b / (1024 * 1024)) * 100) / 100;
       if (!videoFile || !title) return;
       setErrorMsg(null);
 
       const maxMB = config.maxUploadMB;
       if (videoFile.size / (1024 * 1024) > maxMB) {
-        setErrorMsg(`Selected video is too large (${bytesToMB(videoFile.size)} MB). Max is ${maxMB} MB.`);
+        setErrorMsg(
+          `Selected video is too large (${bytesToMB(videoFile.size)} MB). Max is ${maxMB} MB.`,
+        );
         return;
       }
       await Promise.all([
@@ -74,17 +80,19 @@ export const UploadPage = () => {
           type="text"
           placeholder="Title *"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => canUpload && setTitle(e.target.value)}
           className="px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+          disabled={!canUpload}
         />
 
         {/* Description */}
         <textarea
           placeholder="Description"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => canUpload && setDescription(e.target.value)}
           rows={6}
           className="px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent dark:text-white text-sm resize-y min-h-30 focus:outline-none focus:ring-2 focus:ring-red-500"
+          disabled={!canUpload}
         />
 
         {/* Thumbnail picker */}
@@ -113,8 +121,9 @@ export const UploadPage = () => {
             </div>
           ) : (
             <button
-              onClick={() => thumbnailInputRef.current?.click()}
-              className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 dark:border-neutral-700 py-8 text-neutral-500 dark:text-neutral-400 hover:border-red-400 hover:text-red-500 dark:hover:border-red-500 dark:hover:text-red-400 transition-colors cursor-pointer"
+              onClick={() => canUpload && thumbnailInputRef.current?.click()}
+              className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 dark:border-neutral-700 py-8 text-neutral-500 dark:text-neutral-400 hover:border-red-400 hover:text-red-500 dark:hover:border-red-500 dark:hover:text-red-400 transition-colors ${!canUpload ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+              disabled={!canUpload}
             >
               <svg
                 viewBox="0 0 24 24"
@@ -136,7 +145,8 @@ export const UploadPage = () => {
             type="file"
             accept="image/jpeg,image/jpg"
             className="hidden"
-            onChange={(e) => handleThumbnailChange(e.target.files?.[0] ?? null)}
+            onChange={(e) => canUpload && handleThumbnailChange(e.target.files?.[0] ?? null)}
+            disabled={!canUpload}
           />
         </div>
 
@@ -148,8 +158,9 @@ export const UploadPage = () => {
           <input
             type="file"
             accept="video/mp4"
-            onChange={(e) => setVideoFile(e.target.files?.[0] ?? null)}
-            className="text-sm text-neutral-700 dark:text-neutral-300 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-neutral-100 dark:file:bg-neutral-800 file:text-neutral-700 dark:file:text-neutral-300 hover:file:bg-neutral-200 dark:hover:file:bg-neutral-700 cursor-pointer"
+            onChange={(e) => canUpload && setVideoFile(e.target.files?.[0] ?? null)}
+            className={`text-sm text-neutral-700 dark:text-neutral-300 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-neutral-100 dark:file:bg-neutral-800 file:text-neutral-700 dark:file:text-neutral-300 hover:file:bg-neutral-200 dark:hover:file:bg-neutral-700 ${!canUpload ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+            disabled={!canUpload}
           />
         </div>
 
@@ -199,14 +210,14 @@ export const UploadPage = () => {
             ❌ Upload failed. Please try again.
           </p>
         )}
-        {errorMsg && (
-          <p className="text-red-500 text-sm">{errorMsg}</p>
-        )}
+        {errorMsg && <p className="text-red-500 text-sm">{errorMsg}</p>}
 
         <button
           onClick={handleUpload}
-          disabled={!videoFile || !title || uploading}
-          className="py-2.5 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 disabled:opacity-50 transition-colors"
+          disabled={!canUpload || !videoFile || !title || uploading}
+          className={`py-2.5 rounded-lg font-medium transition-colors bg-red-500 text-white hover:bg-red-600 ${
+            !canUpload ? 'cursor-not-allowed' : ''
+          }`}
         >
           {uploading ? "Uploading..." : "Upload"}
         </button>
