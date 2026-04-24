@@ -70,7 +70,7 @@ const ShareModal = ({ url, onClose }: { url: string; onClose: () => void }) => {
             readOnly
             value={url}
             onFocus={(e) => e.currentTarget.select()}
-            className="flex-1 text-sm text-neutral-600 dark:text-neutral-300 bg-transparent outline-none whitespace-nowrap overflow-auto select-all"
+            className="flex-1 min-w-0 text-sm text-neutral-600 dark:text-neutral-300 bg-transparent outline-none truncate select-all"
           />
           <button
             onClick={handleCopy}
