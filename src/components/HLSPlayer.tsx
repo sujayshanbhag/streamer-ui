@@ -1,7 +1,7 @@
 import "@vidstack/react/player/styles/default/theme.css";
 import "@vidstack/react/player/styles/default/layouts/video.css";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   MediaPlayer,
   MediaProvider,
@@ -9,6 +9,7 @@ import {
   SeekButton,
   Gesture,
   useMediaState,
+  useMediaRemote,
   Menu,
   isHLSProvider,
 } from "@vidstack/react";
@@ -92,6 +93,7 @@ export const HLSPlayer = ({
           icons={defaultLayoutIcons}
           seekStep={10}
           noGestures={true}
+          smallLayoutWhen={false}
           slots={{
             settingsMenu: null,
             beforeCaptionButton: (
@@ -141,8 +143,8 @@ export const HLSPlayer = ({
 
 const CustomQualityMenu = ({ current, options, onSelect }: any) => (
   <Menu.Root>
-    <Menu.Button className="group inline-flex items-center justify-center h-10 px-2.5 text-white hover:bg-white/20 rounded-md transition-colors text-sm font-medium gap-1 outline-none">
-      <span className="hidden sm:inline uppercase">{current}</span>
+    <Menu.Button className="group inline-flex items-center justify-center h-10 px-2.5 text-white hover:bg-white/20 rounded-md transition-colors text-xs sm:text-sm font-medium gap-1 outline-none">
+      <span className="uppercase">{current}</span>
     </Menu.Button>
     <Menu.Content
       className="z-[100] bg-[#1a1a1a] border border-white/10 p-2 rounded-lg min-w-[120px] shadow-2xl animate-in fade-in slide-in-from-bottom-2"
@@ -180,6 +182,32 @@ const CustomQualityMenu = ({ current, options, onSelect }: any) => (
 const CenterControls = () => {
   const isPaused = useMediaState("paused");
   const isVisible = useMediaState("controlsVisible");
+  const remote = useMediaRemote();
+  const isVisibleRef = useRef(isVisible);
+  const wasVisibleOnTouchRef = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Keep isVisibleRef in sync with current controls visibility
+  useEffect(() => {
+    isVisibleRef.current = isVisible;
+  }, [isVisible]);
+
+  // Use native capture-phase touchstart so we record visibility BEFORE
+  // vidstack's own listener fires and shows the controls.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onTouchStart = () => {
+      wasVisibleOnTouchRef.current = isVisibleRef.current;
+    };
+    el.addEventListener("touchstart", onTouchStart, {
+      capture: true,
+      passive: true,
+    });
+    return () =>
+      el.removeEventListener("touchstart", onTouchStart, { capture: true });
+  }, []);
+
   return (
     <>
       <Gesture
@@ -192,32 +220,55 @@ const CenterControls = () => {
         event="dblpointerup"
         action="seek:10"
       />
-      <Gesture
+      {/*
+        Custom tap handler replaces the Gesture toggle:paused.
+        On touch: if the controls were hidden when the tap started, we let
+        vidstack show them (first tap = reveal only, no action).
+        On subsequent taps (controls already visible) we toggle play/pause.
+        On desktop pointer the behaviour is unchanged.
+      */}
+      <div
+        ref={containerRef}
         className="absolute inset-0 z-0 block h-full w-full"
-        event="pointerup"
-        action="toggle:paused"
+        onPointerUp={(e) => {
+          if (e.pointerType === "touch" && !wasVisibleOnTouchRef.current) {
+            // First tap on mobile: controls were hidden, just let them appear
+            return;
+          }
+          remote.togglePaused(e.nativeEvent);
+        }}
       />
       <div
-        className={`absolute inset-0 z-20 flex items-center justify-center gap-12 pointer-events-none transition-opacity duration-300 ${isVisible ? "opacity-100" : "opacity-0"}`}
+        className={`absolute inset-0 z-20 flex items-center justify-center gap-8 sm:gap-12 pointer-events-none transition-opacity duration-300 ${
+          isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
       >
         <SeekButton
           seconds={-10}
-          className="pointer-events-auto transition-transform active:scale-90 text-white"
+          className={`transition-transform active:scale-90 text-white ${
+            isVisible ? "pointer-events-auto" : "pointer-events-none"
+          }`}
         >
-          <TbRewindBackward10 size={48} className="drop-shadow-lg" />
+          <TbRewindBackward10 className="drop-shadow-lg w-9 h-9 sm:w-12 sm:h-12" />
         </SeekButton>
-        <PlayButton className="pointer-events-auto transition-transform active:scale-95 hover:scale-110 text-white">
+        <PlayButton
+          className={`transition-transform active:scale-95 hover:scale-110 text-white ${
+            isVisible ? "pointer-events-auto" : "pointer-events-none"
+          }`}
+        >
           {isPaused ? (
-            <TbPlayerPlayFilled size={72} />
+            <TbPlayerPlayFilled className="w-14 h-14 sm:w-18 sm:h-18" />
           ) : (
-            <TbPlayerPauseFilled size={72} />
+            <TbPlayerPauseFilled className="w-14 h-14 sm:w-18 sm:h-18" />
           )}
         </PlayButton>
         <SeekButton
           seconds={10}
-          className="pointer-events-auto transition-transform active:scale-90 text-white"
+          className={`transition-transform active:scale-90 text-white ${
+            isVisible ? "pointer-events-auto" : "pointer-events-none"
+          }`}
         >
-          <TbRewindForward10 size={48} className="drop-shadow-lg" />
+          <TbRewindForward10 className="drop-shadow-lg w-9 h-9 sm:w-12 sm:h-12" />
         </SeekButton>
       </div>
     </>

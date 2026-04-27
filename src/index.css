@@ -1,3 +1,64 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Vidstack mobile layout overrides
+ * ─────────────────────────────────────────────────────────────────────────────
+ * We force the large layout at all screen sizes via smallLayoutWhen={false}.
+ * These rules ensure the large layout bottom bar stays on one line and scales
+ * down gracefully on narrow screens.
+ */
+
+/* Prevent the bottom bar from overflowing on small screens */
+.vds-video-layout .vds-controls-group:last-child {
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+/* Allow the time slider to shrink on small screens */
+.vds-video-layout .vds-time-slider {
+  min-width: 40px !important;
+  flex-shrink: 1 !important;
+}
+
+/* Reduce gap between play button and time group */
+:where(.vds-video-layout:not([data-sm]) .vds-time-group) {
+  margin-left: 4px !important;
+}
+
+/* Reduce extra margin-right on each button to even out right-side spacing */
+:where(.vds-video-layout .vds-button) {
+  margin-right: 0px !important;
+}
+
+/* Tighten gap on both sides of the PiP button */
+:where(.vds-video-layout .vds-pip-button) {
+  margin-left: -6px !important;
+  margin-right: -6px !important;
+}
+
+/*
+ * The fullscreen button gets [data-focus] during playback (pointer/programmatic focus),
+ * which shows the focus ring box-shadow. Only show it for real keyboard navigation.
+ */
+:where(.vds-fullscreen-button[data-focus]:not(:focus-visible)) {
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
+
+/* Keep the mute button's negative margin adjustments but tighten */
+:where(.vds-video-layout:not([data-sm]) .vds-mute-button) {
+  margin-left: 0px !important;
+  margin-right: 0px !important;
+}
+
+/*
+ * Tooltip content uses display:inline-block with no position set, meaning it
+ * becomes a visible-space flex child (opacity:0 but still occupying width).
+ * FloatingUI positions via top/left, so absolute positioning is correct and
+ * does not break tooltip placement.
+ */
+:where(.vds-tooltip-content) {
+  position: absolute !important;
+}
