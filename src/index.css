@@ -62,3 +62,35 @@
 :where(.vds-tooltip-content) {
   position: absolute !important;
 }
+
+/* Hide Google Cast (screencast) button — not needed */
+:where(.vds-google-cast-button) {
+  display: none !important;
+  margin: 0 -8px !important;
+  padding: 0 !important;
+  width: 0 !important;
+  min-width: 0 !important;
+}
+
+/*
+ * On very narrow phones (e.g. S8+, ~360px wide) the bottom bar still overflows.
+ * Shrink button hit areas and strip remaining margins so everything fits.
+ */
+@media (max-width: 400px) {
+  :where(.vds-video-layout) {
+    --media-button-size: 30px !important;
+  }
+
+  .vds-video-layout .vds-controls-group {
+    padding: 2px 2px !important;
+  }
+
+  :where(.vds-video-layout:not([data-sm]) .vds-time-group) {
+    margin-left: 2px !important;
+  }
+
+  :where(.vds-video-layout .vds-pip-button) {
+    margin-left: -4px !important;
+    margin-right: -4px !important;
+  }
+}
